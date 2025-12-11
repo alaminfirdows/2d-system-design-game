@@ -7,6 +7,7 @@ import {
 	useReactFlow,
 	type Edge,
 	type Node,
+	type OnConnectStart,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Hand, Plus } from 'lucide-react';
@@ -15,6 +16,10 @@ import { Toaster } from 'sonner';
 
 import { AnimatedEdge } from '@/components/AnimatedEdge';
 import { Button } from '@/components/ui/button';
+import {
+	ConnectionProvider,
+	useConnection,
+} from '@/context/connection-context';
 import { notifyError } from '@/lib/toast';
 import { opaqueId } from '@/lib/utils';
 import { infraNodeTypes } from './components/nodes/infra-node';
@@ -101,6 +106,7 @@ function Flow() {
 	const [nodeCount, setNodeCount] = useState(3);
 
 	const { screenToFlowPosition } = useReactFlow();
+	const { startConnection, endConnection } = useConnection();
 
 	const onNodesChange = useCallback((changes: any) => {
 		console.log('onNodesChange', changes);
@@ -131,14 +137,6 @@ function Flow() {
 			const sourceConfig = nodeConfigs[sourceType];
 			const targetConfig = nodeConfigs[targetType];
 
-			// Check if the source node can connect to the target node type
-			if (!sourceConfig.allowedOutgoing.includes(targetType)) {
-				notifyError(
-					`${sourceConfig.label} cannot connect to ${targetConfig.label}`
-				);
-				return;
-			}
-
 			// Check if the target node can receive connections from the source node type
 			if (!targetConfig.allowedIncoming.includes(sourceType)) {
 				notifyError(
@@ -153,6 +151,22 @@ function Flow() {
 		},
 		[nodes]
 	);
+
+	const onConnectStart: OnConnectStart = useCallback(
+		(_, { nodeId, handleType }) => {
+			if (nodeId && handleType) {
+				const node = nodes.find((n) => n.id === nodeId);
+				if (node?.type) {
+					startConnection(node.type as NodeType, handleType);
+				}
+			}
+		},
+		[nodes, startConnection]
+	);
+
+	const onConnectEnd = useCallback(() => {
+		endConnection();
+	}, [endConnection]);
 
 	const onPaneClick = useCallback(
 		(event: React.MouseEvent) => {
@@ -195,6 +209,8 @@ function Flow() {
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
+					onConnectStart={onConnectStart}
+					onConnectEnd={onConnectEnd}
 					onPaneClick={onPaneClick}
 					defaultEdgeOptions={{
 						type: 'animated',
@@ -226,9 +242,11 @@ function Flow() {
 function App() {
 	return (
 		<ReactFlowProvider>
-			<Flow />
-			<Toaster />
-			{/* <Scene3D /> */}
+			<ConnectionProvider>
+				<Flow />
+				<Toaster />
+				{/* <Scene3D /> */}
+			</ConnectionProvider>
 		</ReactFlowProvider>
 	);
 }

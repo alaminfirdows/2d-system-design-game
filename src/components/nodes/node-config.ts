@@ -36,7 +36,7 @@ export interface NodeConfig {
     icon: string;
     iconClassNames: string;
     allowedIncoming: NodeType[];
-    allowedOutgoing: NodeType[];
+    // allowedOutgoing: NodeType[];
     handles: {
         in?: Position;
         out?: Position;
@@ -65,7 +65,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: internetStart, // No icon for start node
         iconClassNames: 'bg-white text-background',
         allowedIncoming: [],
-        allowedOutgoing: [FIREWALL],
+        // allowedOutgoing: [FIREWALL, LOAD_BALANCER, API_GATEWAY, COMPUTE],
         handles: {
             out: Position.Bottom,
         },
@@ -77,7 +77,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsLb,
         iconClassNames: 'bg-purple-900',
         allowedIncoming: [API_GATEWAY, CDN, FIREWALL],
-        allowedOutgoing: [COMPUTE],
+        // allowedOutgoing: [COMPUTE],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -89,8 +89,8 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         shortLabel: 'Compute',
         icon: awsEc2,
         iconClassNames: 'bg-orange-700',
-        allowedIncoming: [LOAD_BALANCER, API_GATEWAY, QUEUE],
-        allowedOutgoing: [DATABASE, CACHE, QUEUE, STORAGE],
+        allowedIncoming: [LOAD_BALANCER, API_GATEWAY, QUEUE, START],
+        // allowedOutgoing: [DATABASE, CACHE, QUEUE, STORAGE],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -103,7 +103,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsRds,
         iconClassNames: 'bg-blue-700',
         allowedIncoming: [COMPUTE, CACHE],
-        allowedOutgoing: [COMPUTE],
+        // allowedOutgoing: [COMPUTE],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -116,7 +116,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsElasticCache,
         iconClassNames: 'bg-blue-700',
         allowedIncoming: [COMPUTE],
-        allowedOutgoing: [COMPUTE, DATABASE],
+        // allowedOutgoing: [COMPUTE, DATABASE],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -129,7 +129,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsSqs,
         iconClassNames: 'bg-rose-500',
         allowedIncoming: [COMPUTE, API_GATEWAY],
-        allowedOutgoing: [COMPUTE],
+        // allowedOutgoing: [COMPUTE],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -142,7 +142,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsS3,
         iconClassNames: 'bg-green-700',
         allowedIncoming: [COMPUTE, CDN],
-        allowedOutgoing: [COMPUTE, CDN],
+        // allowedOutgoing: [COMPUTE, CDN],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -155,7 +155,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsWaf,
         iconClassNames: 'bg-red-500',
         allowedIncoming: [START],
-        allowedOutgoing: [LOAD_BALANCER, API_GATEWAY, CDN],
+        // allowedOutgoing: [LOAD_BALANCER, API_GATEWAY, CDN],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -168,7 +168,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsCloudfront,
         iconClassNames: 'bg-purple-700',
         allowedIncoming: [FIREWALL, STORAGE],
-        allowedOutgoing: [LOAD_BALANCER, STORAGE],
+        // allowedOutgoing: [LOAD_BALANCER, STORAGE],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
@@ -181,7 +181,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         icon: awsApiGateway,
         iconClassNames: 'bg-rose-700',
         allowedIncoming: [FIREWALL],
-        allowedOutgoing: [LOAD_BALANCER, COMPUTE, QUEUE],
+        // allowedOutgoing: [LOAD_BALANCER, COMPUTE, QUEUE],
         handles: {
             in: Position.Top,
             out: Position.Bottom,
