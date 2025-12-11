@@ -45,5 +45,30 @@
     "overrides": {
       "vite": "npm:rolldown-vite@7.2.5"
     }
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "singleAttributePerLine": false,
+    "htmlWhitespaceSensitivity": "css",
+    "printWidth": 150,
+    "plugins": [
+      "prettier-plugin-organize-imports",
+      "prettier-plugin-tailwindcss"
+    ],
+    "tailwindFunctions": [
+      "clsx",
+      "cn"
+    ],
+    "tailwindStylesheet": "src/app.css",
+    "tabWidth": 4,
+    "overrides": [
+      {
+        "files": "**/*.yml",
+        "options": {
+          "tabWidth": 2
+        }
+      }
+    ]
   }
 }
