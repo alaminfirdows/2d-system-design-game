@@ -1,11 +1,6 @@
-import { memo, useMemo } from 'react';
-import {
-    ReactFlow,
-    type Edge,
-    type Node,
-    type OnConnectStart,
-} from '@xyflow/react';
+import { ReactFlow, type Edge, type Node, type OnConnectStart } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { memo, useMemo } from 'react';
 
 import { AnimatedEdge } from '@/components/AnimatedEdge';
 import { infraNodeTypes } from './nodes/infra-node';

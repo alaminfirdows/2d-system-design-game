@@ -1,6 +1,6 @@
-import { memo, useMemo } from 'react';
-import { Hand, Trash2, Unlink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Hand, Trash2, Unlink } from 'lucide-react';
+import { memo, useMemo } from 'react';
 import { getAvailableNodes, type NodeType } from './nodes/node-config';
 
 type Mode = 'select' | 'remove-node' | 'remove-edge' | NodeType;
@@ -15,27 +15,15 @@ export const Toolbar = memo(function Toolbar({ mode, onModeChange }: ToolbarProp
 
     return (
         <div className="flex h-16 items-center justify-center gap-2 overflow-x-auto border-t border-border bg-background px-4">
-            <Button
-                onClick={() => onModeChange('select')}
-                variant={mode === 'select' ? 'default' : 'secondary'}
-                size="sm"
-            >
+            <Button onClick={() => onModeChange('select')} variant={mode === 'select' ? 'default' : 'secondary'} size="sm">
                 <Hand className="size-4" />
                 Select
             </Button>
-            <Button
-                onClick={() => onModeChange('remove-node')}
-                variant={mode === 'remove-node' ? 'default' : 'secondary'}
-                size="sm"
-            >
+            <Button onClick={() => onModeChange('remove-node')} variant={mode === 'remove-node' ? 'default' : 'secondary'} size="sm">
                 <Trash2 className="size-4" />
                 Remove Node
             </Button>
-            <Button
-                onClick={() => onModeChange('remove-edge')}
-                variant={mode === 'remove-edge' ? 'default' : 'secondary'}
-                size="sm"
-            >
+            <Button onClick={() => onModeChange('remove-edge')} variant={mode === 'remove-edge' ? 'default' : 'secondary'} size="sm">
                 <Unlink className="size-4" />
                 Remove Edge
             </Button>
