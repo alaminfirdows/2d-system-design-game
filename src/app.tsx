@@ -13,51 +13,69 @@ import { Hand, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { AnimatedEdge } from '@/components/AnimatedEdge';
-import {
-	CircleNode,
-	DiamondNode,
-	HexagonNode,
-	TriangleNode,
-} from '@/components/nodes';
 import { Button } from '@/components/ui/button';
 import { opaqueId } from '@/lib/utils';
+import { infraNodeTypes } from './components/nodes/infra-node';
+import { nodeConfigs, type NodeType } from './components/nodes/node-config';
 
 type Mode = 'dnd' | 'add';
-type NodeShape = 'circle' | 'diamond' | 'triangle' | 'hexagon';
 
-const nodeTypes = {
-	circle: CircleNode,
-	diamond: DiamondNode,
-	triangle: TriangleNode,
-	hexagon: HexagonNode,
-};
-
-const nodeShapes: NodeShape[] = ['circle', 'diamond', 'triangle', 'hexagon'];
+const nodeTypes = infraNodeTypes;
 
 const initialNodes: Node[] = [
 	{
 		id: opaqueId('node'),
-		type: 'circle',
-		position: { x: 0, y: 100 },
-		data: { label: 'Node 1' },
+		type: 'loadbalancer',
+		position: { x: 0, y: 0 },
+		data: { label: 'Load Balancer' },
 	},
 	{
 		id: opaqueId('node'),
-		type: 'diamond',
-		position: { x: 200, y: 100 },
-		data: { label: 'Node 2' },
+		type: 'compute',
+		position: { x: 200, y: 120 },
+		data: { label: 'Compute' },
 	},
 	{
 		id: opaqueId('node'),
-		type: 'triangle',
-		position: { x: 400, y: 100 },
-		data: { label: 'Node 3' },
+		type: 'database',
+		position: { x: 400, y: 0 },
+		data: { label: 'Database' },
 	},
 	{
 		id: opaqueId('node'),
-		type: 'hexagon',
-		position: { x: 600, y: 100 },
-		data: { label: 'Node 4' },
+		type: 'cache',
+		position: { x: 400, y: 120 },
+		data: { label: 'Cache' },
+	},
+	{
+		id: opaqueId('node'),
+		type: 'queue',
+		position: { x: 600, y: 0 },
+		data: { label: 'Queue' },
+	},
+	{
+		id: opaqueId('node'),
+		type: 'storage',
+		position: { x: 600, y: 120 },
+		data: { label: 'Storage' },
+	},
+	{
+		id: opaqueId('node'),
+		type: 'firewall',
+		position: { x: -200, y: 0 },
+		data: { label: 'Firewall' },
+	},
+	{
+		id: opaqueId('node'),
+		type: 'cdn',
+		position: { x: -200, y: 120 },
+		data: { label: 'CDN' },
+	},
+	{
+		id: opaqueId('node'),
+		type: 'apigateway',
+		position: { x: 200, y: -100 },
+		data: { label: 'API Gateway' },
 	},
 ];
 
@@ -109,13 +127,19 @@ function Flow() {
 				y: event.clientY,
 			});
 
-			const randomShape =
-				nodeShapes[Math.floor(Math.random() * nodeShapes.length)];
+			const randomType: NodeType =
+				nodeConfigs[
+					Object.keys(nodeConfigs)[
+						Math.floor(Math.random() * Object.keys(nodeConfigs).length)
+					] as NodeType
+				].type;
 			const newNode: Node = {
 				id: opaqueId('node'),
-				type: randomShape,
+				type: randomType,
 				position,
-				data: { label: `Node ${nodeCount}` },
+				data: {
+					label: randomType.charAt(0).toUpperCase() + randomType.slice(1),
+				},
 			};
 
 			setNodes((nds) => [...nds, newNode]);
