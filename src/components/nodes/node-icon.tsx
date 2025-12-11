@@ -12,7 +12,7 @@ export const NodeIcon = ({ icon, label, iconClassNames, selected }: NodeProps) =
         <div
             className={cn(
                 'relative rounded-md border bg-background/60 p-1.5 text-center transition-colors',
-                selected ? 'border-2 border-primary' : 'border-foreground/50',
+                selected ? 'border-primary' : 'border-foreground/20',
             )}
         >
             <img src={icon} alt={label} className="rounded-sm" />

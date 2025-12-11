@@ -195,6 +195,7 @@ function Flow() {
                     const targetNode = node;
 
                     if (sourceNode) {
+                        return;
                         const sourceType = sourceNode.type as NodeType;
                         const targetType = targetNode.type as NodeType;
                         const sourceConfig = nodeConfigs[sourceType];
