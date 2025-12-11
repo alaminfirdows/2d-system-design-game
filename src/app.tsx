@@ -10,7 +10,7 @@ import {
     type OnConnectStart,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Hand } from 'lucide-react';
+import { Hand, Trash2, Unlink } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Toaster } from 'sonner';
 
@@ -22,7 +22,7 @@ import { opaqueId } from '@/lib/utils';
 import { infraNodeTypes } from './components/nodes/infra-node';
 import { getAvailableNodes, nodeConfigs, type NodeType } from './components/nodes/node-config';
 
-type Mode = 'select' | NodeType;
+type Mode = 'select' | 'remove-node' | 'remove-edge' | NodeType;
 
 const nodeTypes = infraNodeTypes;
 
@@ -163,18 +163,44 @@ function Flow() {
         endConnection();
     }, [endConnection]);
 
+    const onNodeClick = useCallback(
+        (_: React.MouseEvent, node: Node) => {
+            if (mode === 'remove-node') {
+                // Don't allow removing system nodes (like start)
+                const config = nodeConfigs[node.type as NodeType];
+                if (config?.isSystemNode) {
+                    notifyError('Cannot remove system nodes');
+                    return;
+                }
+                setNodes((nds) => nds.filter((n) => n.id !== node.id));
+                // Also remove connected edges
+                setEdges((eds) => eds.filter((e) => e.source !== node.id && e.target !== node.id));
+            }
+        },
+        [mode],
+    );
+
+    const onEdgeClick = useCallback(
+        (_: React.MouseEvent, edge: Edge) => {
+            if (mode === 'remove-edge') {
+                setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+            }
+        },
+        [mode],
+    );
+
     const onPaneClick = useCallback(
         (event: React.MouseEvent) => {
-            // If in select mode, don't add nodes
-            if (mode === 'select') return;
+            // If in select mode or remove modes, don't add nodes
+            if (mode === 'select' || mode === 'remove-node' || mode === 'remove-edge') return;
 
             const position = screenToFlowPosition({
                 x: event.clientX,
                 y: event.clientY,
             });
 
-            // mode is a NodeType when not 'select'
-            const nodeType = mode;
+            // mode is a NodeType when not 'select' or remove modes
+            const nodeType = mode as NodeType;
             const config = nodeConfigs[nodeType];
 
             const newNode: Node = {
@@ -206,6 +232,8 @@ function Flow() {
                     onConnectStart={onConnectStart}
                     onConnectEnd={onConnectEnd}
                     onPaneClick={onPaneClick}
+                    onNodeClick={onNodeClick}
+                    onEdgeClick={onEdgeClick}
                     defaultEdgeOptions={{
                         type: 'animated',
                     }}
@@ -217,6 +245,14 @@ function Flow() {
                 <Button onClick={() => setMode('select')} variant={mode === 'select' ? 'default' : 'secondary'} size="sm">
                     <Hand className="size-4" />
                     Select
+                </Button>
+                <Button onClick={() => setMode('remove-node')} variant={mode === 'remove-node' ? 'default' : 'secondary'} size="sm">
+                    <Trash2 className="size-4" />
+                    Remove Node
+                </Button>
+                <Button onClick={() => setMode('remove-edge')} variant={mode === 'remove-edge' ? 'default' : 'secondary'} size="sm">
+                    <Unlink className="size-4" />
+                    Remove Edge
                 </Button>
                 <div className="mx-2 h-8 w-px bg-border" />
                 {availableNodes.map((config) => (
