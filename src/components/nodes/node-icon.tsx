@@ -4,11 +4,17 @@ type NodeProps = {
     icon: string;
     label: string;
     iconClassNames?: string;
+    selected?: boolean;
 };
 
-export const NodeIcon = ({ icon, label, iconClassNames }: NodeProps) => {
+export const NodeIcon = ({ icon, label, iconClassNames, selected }: NodeProps) => {
     return (
-        <div className="relative rounded-md border border-foreground/50 bg-background/60 p-1.5 text-center">
+        <div
+            className={cn(
+                'relative rounded-md border bg-background/60 p-1.5 text-center transition-colors',
+                selected ? 'border-2 border-primary' : 'border-foreground/50',
+            )}
+        >
             <img src={icon} alt={label} className="rounded-sm" />
 
             <p className="absolute right-1.5 bottom-1.5 left-1.5 z-20 px-1">

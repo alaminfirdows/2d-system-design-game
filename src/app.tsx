@@ -101,11 +101,17 @@ function Flow() {
     const [edges, setEdges] = useState<Edge[]>(initialEdges);
     const [mode, setMode] = useState<Mode>('select');
     const [nodeCount, setNodeCount] = useState(3);
+    const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
     const { screenToFlowPosition } = useReactFlow();
     const { startConnection, endConnection } = useConnection();
 
     const availableNodes = useMemo(() => getAvailableNodes(), []);
+
+    const handleModeChange = useCallback((newMode: Mode) => {
+        setMode(newMode);
+        setSelectedNodeId(null); // Clear selection when mode changes
+    }, []);
 
     const onNodesChange = useCallback((changes: any) => {
         console.log('onNodesChange', changes);
@@ -175,9 +181,53 @@ function Flow() {
                 setNodes((nds) => nds.filter((n) => n.id !== node.id));
                 // Also remove connected edges
                 setEdges((eds) => eds.filter((e) => e.source !== node.id && e.target !== node.id));
+            } else if (mode === 'select') {
+                // Click-to-connect: first click selects source, second click creates edge
+                if (selectedNodeId === null) {
+                    // First click - select the source node
+                    setSelectedNodeId(node.id);
+                } else if (selectedNodeId === node.id) {
+                    // Clicked the same node - deselect
+                    setSelectedNodeId(null);
+                } else {
+                    // Second click - try to create edge from selectedNodeId to this node
+                    const sourceNode = nodes.find((n) => n.id === selectedNodeId);
+                    const targetNode = node;
+
+                    if (sourceNode) {
+                        const sourceType = sourceNode.type as NodeType;
+                        const targetType = targetNode.type as NodeType;
+                        const sourceConfig = nodeConfigs[sourceType];
+                        const targetConfig = nodeConfigs[targetType];
+
+                        // Check if edge already exists
+                        const edgeExists = edges.some((e) => e.source === selectedNodeId && e.target === node.id);
+
+                        if (edgeExists) {
+                            notifyError('Connection already exists');
+                        } else if (!targetConfig.allowedIncoming.includes(sourceType)) {
+                            notifyError(`${targetConfig.label} cannot receive connections from ${sourceConfig.label}`);
+                        } else {
+                            // Create the edge
+                            setEdges((eds) =>
+                                addEdge(
+                                    {
+                                        id: opaqueId('edge'),
+                                        source: selectedNodeId,
+                                        target: node.id,
+                                        type: 'animated',
+                                    },
+                                    eds,
+                                ),
+                            );
+                        }
+                    }
+                    // Reset selection after attempting connection
+                    setSelectedNodeId(null);
+                }
             }
         },
-        [mode],
+        [mode, selectedNodeId, nodes, edges],
     );
 
     const onEdgeClick = useCallback(
@@ -191,6 +241,9 @@ function Flow() {
 
     const onPaneClick = useCallback(
         (event: React.MouseEvent) => {
+            // Clear node selection when clicking on pane
+            setSelectedNodeId(null);
+
             // If in select mode or remove modes, don't add nodes
             if (mode === 'select' || mode === 'remove-node' || mode === 'remove-edge') return;
 
@@ -238,6 +291,7 @@ function Flow() {
                         type: 'animated',
                     }}
                     nodesDraggable={mode === 'select'}
+                    nodesConnectable={mode === 'select'}
                     minZoom={0.3}
                     maxZoom={2}
                     fitView
@@ -245,15 +299,15 @@ function Flow() {
                 />
             </div>
             <div className="flex h-16 items-center justify-center gap-2 overflow-x-auto border-t border-border bg-background px-4">
-                <Button onClick={() => setMode('select')} variant={mode === 'select' ? 'default' : 'secondary'} size="sm">
+                <Button onClick={() => handleModeChange('select')} variant={mode === 'select' ? 'default' : 'secondary'} size="sm">
                     <Hand className="size-4" />
                     Select
                 </Button>
-                <Button onClick={() => setMode('remove-node')} variant={mode === 'remove-node' ? 'default' : 'secondary'} size="sm">
+                <Button onClick={() => handleModeChange('remove-node')} variant={mode === 'remove-node' ? 'default' : 'secondary'} size="sm">
                     <Trash2 className="size-4" />
                     Remove Node
                 </Button>
-                <Button onClick={() => setMode('remove-edge')} variant={mode === 'remove-edge' ? 'default' : 'secondary'} size="sm">
+                <Button onClick={() => handleModeChange('remove-edge')} variant={mode === 'remove-edge' ? 'default' : 'secondary'} size="sm">
                     <Unlink className="size-4" />
                     Remove Edge
                 </Button>
@@ -261,7 +315,7 @@ function Flow() {
                 {availableNodes.map((config) => (
                     <Button
                         key={config.type}
-                        onClick={() => setMode(config.type)}
+                        onClick={() => handleModeChange(config.type)}
                         variant={mode === config.type ? 'default' : 'secondary'}
                         size="sm"
                         className="gap-1"

@@ -14,7 +14,7 @@ interface InfraNodeProps extends NodeProps {
     nodeType: NodeType;
 }
 
-export function InfraNode({ nodeType, isConnectable }: InfraNodeProps) {
+export function InfraNode({ nodeType, isConnectable, selected }: InfraNodeProps) {
     const config = nodeConfigs[nodeType];
     const label = config.shortLabel || config.label;
     const { connectionState } = useConnection();
@@ -70,7 +70,7 @@ export function InfraNode({ nodeType, isConnectable }: InfraNodeProps) {
 
     return (
         <div className={`transition-opacity duration-200 ${!isValid ? 'pointer-events-none opacity-30' : ''}`}>
-            <NodeIcon icon={config.icon} label={label} iconClassNames={config.iconClassNames} />
+            <NodeIcon icon={config.icon} label={label} iconClassNames={config.iconClassNames} selected={selected} />
 
             {shouldShowTargetHandle() && (
                 <Handle type="target" className="bg-background/70 p-1" position={config.handles.in!} isConnectable={isConnectable} />
