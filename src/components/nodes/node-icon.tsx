@@ -15,10 +15,10 @@ export const NodeIcon = ({ icon, label, iconClassNames, selected }: NodeProps) =
                 selected ? 'border-primary' : 'border-foreground/20',
             )}
         >
-            <img src={icon} alt={label} className="rounded-sm" />
+            <img src={icon} alt={label} className="h-14 w-14 rounded-sm" />
 
-            <p className="absolute right-1.5 bottom-1.5 left-1.5 z-20 px-1">
-                <span className={cn('rounded-sm bg-primary px-2 text-xs font-medium text-foreground', iconClassNames)}>{label}</span>
+            <p className="absolute right-0.5 bottom-1 left-0.5 z-20 truncate px-1">
+                <span className={cn('truncate rounded-sm bg-primary px-2 text-[9px] font-medium text-foreground', iconClassNames)}>{label}</span>
             </p>
         </div>
     );
