@@ -10,9 +10,11 @@ import awsRds from '@/components/icons/aws-rds.svg';
 import awsS3 from '@/components/icons/aws-s3.svg';
 import awsSqs from '@/components/icons/aws-sqs.svg';
 import awsWaf from '@/components/icons/aws-waf.svg';
+import internetStart from '@/components/icons/internet-start.svg';
 
 // Node type identifiers
 export const NODE_TYPES = {
+    START: 'start',
     LOAD_BALANCER: 'loadbalancer',
     COMPUTE: 'compute',
     DATABASE: 'database',
@@ -36,12 +38,13 @@ export interface NodeConfig {
     allowedIncoming: NodeType[];
     allowedOutgoing: NodeType[];
     handles: {
-        in: Position;
-        out: Position;
+        in?: Position;
+        out?: Position;
     };
 }
 
 const {
+    START,
     LOAD_BALANCER,
     COMPUTE,
     DATABASE,
@@ -55,6 +58,18 @@ const {
 
 // Node configurations
 export const nodeConfigs: Record<NodeType, NodeConfig> = {
+    [START]: {
+        type: START,
+        label: 'Start',
+        shortLabel: 'Start',
+        icon: internetStart, // No icon for start node
+        iconClassNames: 'bg-white text-background',
+        allowedIncoming: [],
+        allowedOutgoing: [FIREWALL],
+        handles: {
+            out: Position.Bottom,
+        },
+    },
     [LOAD_BALANCER]: {
         type: LOAD_BALANCER,
         label: 'Load Balancer',
@@ -139,7 +154,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         shortLabel: 'FW',
         icon: awsWaf,
         iconClassNames: 'bg-red-500',
-        allowedIncoming: [],
+        allowedIncoming: [START],
         allowedOutgoing: [LOAD_BALANCER, API_GATEWAY, CDN],
         handles: {
             in: Position.Top,

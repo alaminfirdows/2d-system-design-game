@@ -2,6 +2,7 @@ import { Handle, type NodeProps } from '@xyflow/react';
 
 import { NodeIcon } from './node-icon';
 import { nodeConfigs, type NodeType } from './node-config';
+import { Activity } from 'react';
 
 export interface InfraNodeData {
 	label?: string;
@@ -25,19 +26,23 @@ export function InfraNode({ nodeType, isConnectable }: InfraNodeProps) {
 				iconClassNames={config.iconClassNames}
 			/>
 
-			<Handle
-				type='target'
-				className='bg-background/70 p-1'
-				position={config.handles.in}
-				isConnectable={isConnectable}
-			/>
+			{config.handles.in && (
+				<Handle
+					type='target'
+					className='bg-background/70 p-1'
+					position={config.handles.in!}
+					isConnectable={isConnectable}
+				/>
+			)}
 
-			<Handle
-				type='source'
-				className='bg-background/70 p-1'
-				position={config.handles.out}
-				isConnectable={isConnectable}
-			/>
+			{config.handles.out && (
+				<Handle
+					type='source'
+					className='bg-background/70 p-1'
+					position={config.handles.out!}
+					isConnectable={isConnectable}
+				/>
+			)}
 		</div>
 	);
 }
@@ -79,8 +84,13 @@ export const ApiGatewayNode = (props: NodeProps) => (
 	<InfraNode {...props} nodeType='apigateway' />
 );
 
+export const Start = (props: NodeProps) => (
+	<InfraNode {...props} nodeType='start' />
+);
+
 // Node types mapping for React Flow
 export const infraNodeTypes = {
+	start: Start,
 	loadbalancer: LoadBalancerNode,
 	compute: ComputeNode,
 	database: DatabaseNode,
