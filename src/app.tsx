@@ -13,26 +13,51 @@ import { Hand, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { AnimatedEdge } from '@/components/AnimatedEdge';
+import {
+	CircleNode,
+	DiamondNode,
+	HexagonNode,
+	TriangleNode,
+} from '@/components/nodes';
 import { Button } from '@/components/ui/button';
 import { opaqueId } from '@/lib/utils';
 
 type Mode = 'dnd' | 'add';
+type NodeShape = 'circle' | 'diamond' | 'triangle' | 'hexagon';
+
+const nodeTypes = {
+	circle: CircleNode,
+	diamond: DiamondNode,
+	triangle: TriangleNode,
+	hexagon: HexagonNode,
+};
+
+const nodeShapes: NodeShape[] = ['circle', 'diamond', 'triangle', 'hexagon'];
 
 const initialNodes: Node[] = [
 	{
 		id: opaqueId('node'),
+		type: 'circle',
 		position: { x: 0, y: 100 },
 		data: { label: 'Node 1' },
 	},
 	{
 		id: opaqueId('node'),
-		position: { x: 200, y: 200 },
+		type: 'diamond',
+		position: { x: 200, y: 100 },
 		data: { label: 'Node 2' },
 	},
 	{
 		id: opaqueId('node'),
-		position: { x: 250, y: 250 },
+		type: 'triangle',
+		position: { x: 400, y: 100 },
 		data: { label: 'Node 3' },
+	},
+	{
+		id: opaqueId('node'),
+		type: 'hexagon',
+		position: { x: 600, y: 100 },
+		data: { label: 'Node 4' },
 	},
 ];
 
@@ -84,8 +109,11 @@ function Flow() {
 				y: event.clientY,
 			});
 
+			const randomShape =
+				nodeShapes[Math.floor(Math.random() * nodeShapes.length)];
 			const newNode: Node = {
 				id: opaqueId('node'),
+				type: randomShape,
 				position,
 				data: { label: `Node ${nodeCount}` },
 			};
@@ -102,13 +130,14 @@ function Flow() {
 				<ReactFlow
 					nodes={nodes}
 					edges={edges}
+					nodeTypes={nodeTypes}
 					edgeTypes={edgeTypes}
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
 					onPaneClick={onPaneClick}
 					defaultEdgeOptions={{
-						type: 'straight',
+						type: 'animated',
 					}}
 					nodesDraggable={mode === 'dnd'}
 					fitView
