@@ -234,6 +234,7 @@ function Flow() {
 
             setNodes((nds) => [...nds, newNode]);
             setNodeCount((c) => c + 1);
+            setMode('select');
         },
         [mode, screenToFlowPosition, nodeCount],
     );
