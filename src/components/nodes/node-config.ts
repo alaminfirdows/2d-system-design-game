@@ -36,11 +36,12 @@ export interface NodeConfig {
     icon: string;
     iconClassNames: string;
     allowedIncoming: NodeType[];
-    // allowedOutgoing: NodeType[];
     handles: {
         in?: Position;
         out?: Position;
     };
+    /** System nodes cannot be added by users (e.g., start node) */
+    isSystemNode?: boolean;
 }
 
 const {
@@ -66,6 +67,7 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
         iconClassNames: 'bg-white text-background',
         allowedIncoming: [],
         handles: { out: Position.Bottom },
+        isSystemNode: true,
     },
 
     [LOAD_BALANCER]: {
@@ -168,3 +170,8 @@ export const nodeConfigs: Record<NodeType, NodeConfig> = {
 };
 
 export const nodeTypeList = Object.keys(nodeConfigs) as NodeType[];
+
+/** Get nodes that can be added by users (excludes system nodes) */
+export const getAvailableNodes = (): NodeConfig[] => {
+    return Object.values(nodeConfigs).filter((config) => !config.isSystemNode);
+};

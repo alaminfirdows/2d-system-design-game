@@ -10,8 +10,8 @@ import {
 	type OnConnectStart,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Hand, Plus } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { Hand } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 import { Toaster } from 'sonner';
 
 import { AnimatedEdge } from '@/components/AnimatedEdge';
@@ -23,9 +23,13 @@ import {
 import { notifyError } from '@/lib/toast';
 import { opaqueId } from '@/lib/utils';
 import { infraNodeTypes } from './components/nodes/infra-node';
-import { nodeConfigs, type NodeType } from './components/nodes/node-config';
+import {
+	getAvailableNodes,
+	nodeConfigs,
+	type NodeType,
+} from './components/nodes/node-config';
 
-type Mode = 'dnd' | 'add';
+type Mode = 'select' | NodeType;
 
 const nodeTypes = infraNodeTypes;
 
@@ -102,11 +106,13 @@ const edgeTypes = {
 function Flow() {
 	const [nodes, setNodes] = useState<Node[]>(initialNodes);
 	const [edges, setEdges] = useState<Edge[]>(initialEdges);
-	const [mode, setMode] = useState<Mode>('dnd');
+	const [mode, setMode] = useState<Mode>('select');
 	const [nodeCount, setNodeCount] = useState(3);
 
 	const { screenToFlowPosition } = useReactFlow();
 	const { startConnection, endConnection } = useConnection();
+
+	const availableNodes = useMemo(() => getAvailableNodes(), []);
 
 	const onNodesChange = useCallback((changes: any) => {
 		console.log('onNodesChange', changes);
@@ -170,25 +176,24 @@ function Flow() {
 
 	const onPaneClick = useCallback(
 		(event: React.MouseEvent) => {
-			if (mode !== 'add') return;
+			// If in select mode, don't add nodes
+			if (mode === 'select') return;
 
 			const position = screenToFlowPosition({
 				x: event.clientX,
 				y: event.clientY,
 			});
 
-			const randomType: NodeType =
-				nodeConfigs[
-					Object.keys(nodeConfigs)[
-						Math.floor(Math.random() * Object.keys(nodeConfigs).length)
-					] as NodeType
-				].type;
+			// mode is a NodeType when not 'select'
+			const nodeType = mode;
+			const config = nodeConfigs[nodeType];
+
 			const newNode: Node = {
 				id: opaqueId('node'),
-				type: randomType,
+				type: nodeType,
 				position,
 				data: {
-					label: randomType.charAt(0).toUpperCase() + randomType.slice(1),
+					label: config.label,
 				},
 			};
 
@@ -215,25 +220,34 @@ function Flow() {
 					defaultEdgeOptions={{
 						type: 'animated',
 					}}
-					nodesDraggable={mode === 'dnd'}
+					nodesDraggable={mode === 'select'}
 					fitView
 				/>
 			</div>
-			<div className='flex h-16 items-center justify-center gap-4 border-t border-border bg-background'>
+			<div className='flex h-16 items-center justify-center gap-2 border-t border-border bg-background px-4 overflow-x-auto'>
 				<Button
-					onClick={() => setMode('dnd')}
-					variant={mode === 'dnd' ? 'default' : 'secondary'}
-					size='lg'>
+					onClick={() => setMode('select')}
+					variant={mode === 'select' ? 'default' : 'secondary'}
+					size='sm'>
 					<Hand className='size-4' />
-					Drag & Drop
+					Select
 				</Button>
-				<Button
-					onClick={() => setMode('add')}
-					variant={mode === 'add' ? 'default' : 'secondary'}
-					size='lg'>
-					<Plus className='size-4' />
-					Add Node
-				</Button>
+				<div className='w-px h-8 bg-border mx-2' />
+				{availableNodes.map((config) => (
+					<Button
+						key={config.type}
+						onClick={() => setMode(config.type)}
+						variant={mode === config.type ? 'default' : 'secondary'}
+						size='sm'
+						className='gap-1'>
+						<img
+							src={config.icon}
+							alt={config.label}
+							className='size-4'
+						/>
+						{config.shortLabel || config.label}
+					</Button>
+				))}
 			</div>
 		</div>
 	);
