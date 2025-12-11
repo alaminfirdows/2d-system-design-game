@@ -23,9 +23,9 @@ export function AnimatedEdge({
 	return (
 		<>
 			<BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={style} />
-			<circle r='5' fill='#6366f1'>
-				<animateMotion dur='2s' repeatCount='indefinite' path={edgePath} />
-			</circle>
+			{/* <circle r='5' fill='#6366f1'> */}
+				{/* <animateMotion dur='2s' repeatCount='indefinite' path={edgePath} /> */}
+			{/* </circle> */}
 		</>
 	);
 }
