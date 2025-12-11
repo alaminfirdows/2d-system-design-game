@@ -238,7 +238,10 @@ function Flow() {
                         type: 'animated',
                     }}
                     nodesDraggable={mode === 'select'}
+                    minZoom={0.3}
+                    maxZoom={2}
                     fitView
+                    fitViewOptions={{ maxZoom: 1 }}
                 />
             </div>
             <div className="flex h-16 items-center justify-center gap-2 overflow-x-auto border-t border-border bg-background px-4">
