@@ -12,6 +12,7 @@ import '@xyflow/react/dist/style.css';
 import { Hand, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { AnimatedEdge } from '@/components/AnimatedEdge';
 import { Button } from '@/components/ui/button';
 import { opaqueId } from '@/lib/utils';
 
@@ -25,12 +26,28 @@ const initialNodes: Node[] = [
 	},
 	{
 		id: opaqueId('node'),
-		position: { x: 100, y: 100 },
+		position: { x: 200, y: 200 },
 		data: { label: 'Node 2' },
+	},
+	{
+		id: opaqueId('node'),
+		position: { x: 250, y: 250 },
+		data: { label: 'Node 3' },
 	},
 ];
 
-const initialEdges: Edge[] = [];
+const initialEdges: Edge[] = [
+	{
+		id: opaqueId('edge'),
+		source: initialNodes[0].id,
+		target: initialNodes[1].id,
+		type: 'animated',
+	},
+];
+
+const edgeTypes = {
+	animated: AnimatedEdge,
+};
 
 function Flow() {
 	const [nodes, setNodes] = useState<Node[]>(initialNodes);
@@ -52,7 +69,10 @@ function Flow() {
 
 	const onConnect = useCallback((params: any) => {
 		console.log('onConnect', params);
-		setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+
+		setEdges((edgesSnapshot) =>
+			addEdge({ ...params, type: 'animated' }, edgesSnapshot)
+		);
 	}, []);
 
 	const onPaneClick = useCallback(
@@ -82,10 +102,14 @@ function Flow() {
 				<ReactFlow
 					nodes={nodes}
 					edges={edges}
+					edgeTypes={edgeTypes}
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
 					onPaneClick={onPaneClick}
+					defaultEdgeOptions={{
+						type: 'straight',
+					}}
 					nodesDraggable={mode === 'dnd'}
 					fitView
 				/>
@@ -114,6 +138,7 @@ function App() {
 	return (
 		<ReactFlowProvider>
 			<Flow />
+			{/* <Scene3D /> */}
 		</ReactFlowProvider>
 	);
 }
