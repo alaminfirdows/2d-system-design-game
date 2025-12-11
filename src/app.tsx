@@ -190,40 +190,6 @@ function Flow() {
                     // Clicked the same node - deselect
                     setSelectedNodeId(null);
                 } else {
-                    // Second click - try to create edge from selectedNodeId to this node
-                    const sourceNode = nodes.find((n) => n.id === selectedNodeId);
-                    const targetNode = node;
-
-                    if (sourceNode) {
-                        return;
-                        const sourceType = sourceNode.type as NodeType;
-                        const targetType = targetNode.type as NodeType;
-                        const sourceConfig = nodeConfigs[sourceType];
-                        const targetConfig = nodeConfigs[targetType];
-
-                        // Check if edge already exists
-                        const edgeExists = edges.some((e) => e.source === selectedNodeId && e.target === node.id);
-
-                        if (edgeExists) {
-                            notifyError('Connection already exists');
-                        } else if (!targetConfig.allowedIncoming.includes(sourceType)) {
-                            notifyError(`${targetConfig.label} cannot receive connections from ${sourceConfig.label}`);
-                        } else {
-                            // Create the edge
-                            setEdges((eds) =>
-                                addEdge(
-                                    {
-                                        id: opaqueId('edge'),
-                                        source: selectedNodeId,
-                                        target: node.id,
-                                        type: 'animated',
-                                    },
-                                    eds,
-                                ),
-                            );
-                        }
-                    }
-                    // Reset selection after attempting connection
                     setSelectedNodeId(null);
                 }
             }
