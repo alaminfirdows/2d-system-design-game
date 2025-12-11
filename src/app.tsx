@@ -1,31 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
     addEdge,
     applyEdgeChanges,
     applyNodeChanges,
-    ReactFlow,
     ReactFlowProvider,
     useReactFlow,
     type Edge,
     type Node,
     type OnConnectStart,
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { Hand, Trash2, Unlink } from 'lucide-react';
 import { Toaster } from 'sonner';
 
-import { AnimatedEdge } from '@/components/AnimatedEdge';
-import { Button } from '@/components/ui/button';
+import { Canvas } from '@/components/Canvas';
+import { GameController } from '@/components/GameController';
+import { Toolbar } from '@/components/Toolbar';
 import { ConnectionProvider, useConnection } from '@/context/connection-context';
 import { notifyError } from '@/lib/toast';
 import { opaqueId } from '@/lib/utils';
-import { infraNodeTypes } from './components/nodes/infra-node';
-import { getAvailableNodes, nodeConfigs, type NodeType } from './components/nodes/node-config';
+import { nodeConfigs, type NodeType } from './components/nodes/node-config';
 
 type Mode = 'select' | 'remove-node' | 'remove-edge' | NodeType;
-
-const nodeTypes = infraNodeTypes;
 
 const initialNodes: Node[] = [
     {
@@ -92,15 +87,6 @@ const initialEdges: Edge[] = [
     // 	type: 'animated',
     // },
 ];
-
-const edgeTypes = {
-    animated: AnimatedEdge,
-};
-
-// Wrapper component to pass requests prop to AnimatedEdge
-const AnimatedEdgeWithRequests = (props: any) => {
-    return <AnimatedEdge {...props} requests={props.data?.requests || []} />;
-};
 
 function Flow() {
     const [nodes, setNodes] = useState<Node[]>(initialNodes);
@@ -218,17 +204,6 @@ function Flow() {
 
     const { screenToFlowPosition } = useReactFlow();
     const { startConnection, endConnection } = useConnection();
-
-    const availableNodes = useMemo(() => getAvailableNodes(), []);
-
-    // Memoize edgeTypes to avoid React Flow warnings
-    const memoizedEdgeTypes = useMemo(
-        () => ({
-            ...edgeTypes,
-            animated: AnimatedEdgeWithRequests,
-        }),
-        [],
-    );
 
     const handleModeChange = useCallback((newMode: Mode) => {
         setMode(newMode);
@@ -364,115 +339,41 @@ function Flow() {
     return (
         <div className="flex h-screen w-screen flex-col">
             {/* Game Controller Bar */}
-            <div className="flex h-14 items-center justify-center gap-2 border-b border-border bg-background px-4">
-                <Button
-                    onClick={() => {
-                        setGameStatus('running');
-                    }}
-                    variant={gameStatus === 'running' ? 'default' : 'secondary'}
-                    size="sm"
-                >
-                    Start
-                </Button>
-                <Button
-                    onClick={() => {
-                        setGameStatus('paused');
-                    }}
-                    variant={gameStatus === 'paused' ? 'default' : 'secondary'}
-                    size="sm"
-                >
-                    Pause
-                </Button>
-                <Button
-                    onClick={() => {
-                        setGameSpeed(2);
-                    }}
-                    variant={gameSpeed === 2 ? 'default' : 'secondary'}
-                    size="sm"
-                >
-                    2x
-                </Button>
-                <Button
-                    onClick={() => {
-                        setGameSpeed(3);
-                    }}
-                    variant={gameSpeed === 3 ? 'default' : 'secondary'}
-                    size="sm"
-                >
-                    3x
-                </Button>
-                <Button
-                    onClick={() => {
-                        setGameStatus('stopped');
-                        setGameSpeed(1);
-                    }}
-                    variant={gameStatus === 'stopped' ? 'default' : 'secondary'}
-                    size="sm"
-                >
-                    Stop
-                </Button>
-                <span className="ml-4 text-xs text-muted-foreground">
-                    Status: {gameStatus} | Speed: {gameSpeed}x
-                </span>
-            </div>
-            <div className="relative flex-1">
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges.map((edge) => ({
-                        ...edge,
-                        data: {
-                            ...edge.data,
-                            requests: requests.filter((r) => r.edgeId === edge.id && !r.done),
-                        },
-                    }))}
-                    nodeTypes={nodeTypes}
-                    edgeTypes={memoizedEdgeTypes}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    onConnectStart={onConnectStart}
-                    onConnectEnd={onConnectEnd}
-                    onPaneClick={onPaneClick}
-                    onNodeClick={onNodeClick}
-                    onEdgeClick={onEdgeClick}
-                    defaultEdgeOptions={{
-                        type: 'animated',
-                    }}
-                    nodesDraggable={mode === 'select'}
-                    nodesConnectable={mode === 'select'}
-                    minZoom={0.3}
-                    maxZoom={2}
-                    fitView
-                    fitViewOptions={{ maxZoom: 1 }}
-                />
-            </div>
-            <div className="flex h-16 items-center justify-center gap-2 overflow-x-auto border-t border-border bg-background px-4">
-                <Button onClick={() => handleModeChange('select')} variant={mode === 'select' ? 'default' : 'secondary'} size="sm">
-                    <Hand className="size-4" />
-                    Select
-                </Button>
-                <Button onClick={() => handleModeChange('remove-node')} variant={mode === 'remove-node' ? 'default' : 'secondary'} size="sm">
-                    <Trash2 className="size-4" />
-                    Remove Node
-                </Button>
-                <Button onClick={() => handleModeChange('remove-edge')} variant={mode === 'remove-edge' ? 'default' : 'secondary'} size="sm">
-                    <Unlink className="size-4" />
-                    Remove Edge
-                </Button>
-                <div className="mx-2 h-8 w-px bg-border" />
-                {availableNodes.map((config) => (
-                    <Button
-                        key={config.type}
-                        onClick={() => handleModeChange(config.type)}
-                        variant={mode === config.type ? 'default' : 'secondary'}
-                        size="sm"
-                        className="gap-1"
-                    >
-                        <img src={config.icon} alt={config.label} className="size-4" />
-                        {config.shortLabel || config.label}
-                    </Button>
-                ))}
-            </div>
+            <GameController
+                gameStatus={gameStatus}
+                gameSpeed={gameSpeed}
+                onStart={() => {
+                    setGameStatus('running');
+                }}
+                onPause={() => {
+                    setGameStatus('paused');
+                }}
+                onSpeed2x={() => {
+                    setGameSpeed(2);
+                }}
+                onSpeed3x={() => {
+                    setGameSpeed(3);
+                }}
+                onStop={() => {
+                    setGameStatus('stopped');
+                    setGameSpeed(1);
+                }}
+            />
+            <Canvas
+                nodes={nodes}
+                edges={edges}
+                mode={mode}
+                requests={requests}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onConnectStart={onConnectStart}
+                onConnectEnd={onConnectEnd}
+                onPaneClick={onPaneClick}
+                onNodeClick={onNodeClick}
+                onEdgeClick={onEdgeClick}
+            />
+            <Toolbar mode={mode} onModeChange={handleModeChange} />
         </div>
     );
 }
