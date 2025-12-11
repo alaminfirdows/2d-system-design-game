@@ -189,3 +189,8 @@
         letter-spacing: var(--tracking-normal);
     }
 }
+
+/* credit color */
+.dark .react-flow__attribution {
+    @apply bg-background;
+}
