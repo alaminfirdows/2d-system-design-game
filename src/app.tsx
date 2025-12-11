@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import {
     addEdge,
     applyEdgeChanges,
@@ -11,7 +13,6 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Hand, Trash2, Unlink } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
 import { Toaster } from 'sonner';
 
 import { AnimatedEdge } from '@/components/AnimatedEdge';
@@ -96,17 +97,138 @@ const edgeTypes = {
     animated: AnimatedEdge,
 };
 
+// Wrapper component to pass requests prop to AnimatedEdge
+const AnimatedEdgeWithRequests = (props: any) => {
+    return <AnimatedEdge {...props} requests={props.data?.requests || []} />;
+};
+
 function Flow() {
     const [nodes, setNodes] = useState<Node[]>(initialNodes);
     const [edges, setEdges] = useState<Edge[]>(initialEdges);
     const [mode, setMode] = useState<Mode>('select');
     const [nodeCount, setNodeCount] = useState(3);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+    // Game controller state
+    const [gameStatus, setGameStatus] = useState<'stopped' | 'running' | 'paused'>('stopped');
+    const [gameSpeed, setGameSpeed] = useState<1 | 2 | 3>(1);
+    // Game requests state
+    // Each request tracks its current edge and progress
+    const [requests, setRequests] = useState<
+        {
+            id: string;
+            progress: number;
+            edgeId: string;
+            path: string[]; // edge ids to traverse
+            done?: boolean;
+        }[]
+    >([]);
+
+    // Generate initial requests when game starts, and clear on stop
+    useEffect(() => {
+        if (gameStatus === 'running') {
+            // Initial burst
+            const count = Math.floor(Math.random() * 11) + 5;
+            const startNode = nodes.find((n) => n.type === 'start');
+            function getPathFromNode(nodeId: string): string[] {
+                const path: string[] = [];
+                let currentNodeId = nodeId;
+                let depth = 0;
+                while (depth < 10) {
+                    const nextEdge = edges.find((e) => e.source === currentNodeId);
+                    if (!nextEdge) break;
+                    path.push(nextEdge.id);
+                    currentNodeId = nextEdge.target;
+                    depth++;
+                }
+                return path;
+            }
+            const newRequests = Array.from({ length: count }, (_, i) => {
+                const path = startNode ? getPathFromNode(startNode.id) : [];
+                return {
+                    id: `req-${Date.now()}-${i}`,
+                    progress: 0,
+                    edgeId: path[0],
+                    path,
+                };
+            });
+            setRequests(newRequests);
+        } else if (gameStatus === 'stopped') {
+            setRequests([]);
+        }
+    }, [gameStatus]);
+
+    // Continuously generate requests while running
+    useEffect(() => {
+        if (gameStatus !== 'running') return;
+        const interval = setInterval(() => {
+            const startNode = nodes.find((n) => n.type === 'start');
+            function getPathFromNode(nodeId: string): string[] {
+                const path: string[] = [];
+                let currentNodeId = nodeId;
+                let depth = 0;
+                while (depth < 10) {
+                    const nextEdge = edges.find((e) => e.source === currentNodeId);
+                    if (!nextEdge) break;
+                    path.push(nextEdge.id);
+                    currentNodeId = nextEdge.target;
+                    depth++;
+                }
+                return path;
+            }
+            const path = startNode ? getPathFromNode(startNode.id) : [];
+            if (path.length > 0) {
+                setRequests((reqs) => [
+                    ...reqs,
+                    {
+                        id: `req-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+                        progress: 0,
+                        edgeId: path[0],
+                        path,
+                    },
+                ]);
+            }
+        }, 1000); // every second
+        return () => clearInterval(interval);
+    }, [gameStatus, nodes, edges]);
+
+    // Game loop: update request progress
+    useEffect(() => {
+        if (gameStatus !== 'running' || requests.length === 0) return;
+        const interval = setInterval(() => {
+            setRequests((reqs) =>
+                reqs.map((r) => {
+                    if (r.done) return r;
+                    if (r.progress < 1) {
+                        return { ...r, progress: Math.min(1, r.progress + 0.01 * gameSpeed) };
+                    } else {
+                        // Move to next edge in path
+                        const currentIndex = r.path.indexOf(r.edgeId);
+                        const nextEdgeId = r.path[currentIndex + 1];
+                        if (nextEdgeId) {
+                            return { ...r, edgeId: nextEdgeId, progress: 0 };
+                        } else {
+                            return { ...r, done: true };
+                        }
+                    }
+                }),
+            );
+        }, 50);
+        return () => clearInterval(interval);
+    }, [gameStatus, gameSpeed, requests.length, edges]);
 
     const { screenToFlowPosition } = useReactFlow();
     const { startConnection, endConnection } = useConnection();
 
     const availableNodes = useMemo(() => getAvailableNodes(), []);
+
+    // Memoize edgeTypes to avoid React Flow warnings
+    const memoizedEdgeTypes = useMemo(
+        () => ({
+            ...edgeTypes,
+            animated: AnimatedEdgeWithRequests,
+        }),
+        [],
+    );
 
     const handleModeChange = useCallback((newMode: Mode) => {
         setMode(newMode);
@@ -241,12 +363,70 @@ function Flow() {
 
     return (
         <div className="flex h-screen w-screen flex-col">
+            {/* Game Controller Bar */}
+            <div className="flex h-14 items-center justify-center gap-2 border-b border-border bg-background px-4">
+                <Button
+                    onClick={() => {
+                        setGameStatus('running');
+                    }}
+                    variant={gameStatus === 'running' ? 'default' : 'secondary'}
+                    size="sm"
+                >
+                    Start
+                </Button>
+                <Button
+                    onClick={() => {
+                        setGameStatus('paused');
+                    }}
+                    variant={gameStatus === 'paused' ? 'default' : 'secondary'}
+                    size="sm"
+                >
+                    Pause
+                </Button>
+                <Button
+                    onClick={() => {
+                        setGameSpeed(2);
+                    }}
+                    variant={gameSpeed === 2 ? 'default' : 'secondary'}
+                    size="sm"
+                >
+                    2x
+                </Button>
+                <Button
+                    onClick={() => {
+                        setGameSpeed(3);
+                    }}
+                    variant={gameSpeed === 3 ? 'default' : 'secondary'}
+                    size="sm"
+                >
+                    3x
+                </Button>
+                <Button
+                    onClick={() => {
+                        setGameStatus('stopped');
+                        setGameSpeed(1);
+                    }}
+                    variant={gameStatus === 'stopped' ? 'default' : 'secondary'}
+                    size="sm"
+                >
+                    Stop
+                </Button>
+                <span className="ml-4 text-xs text-muted-foreground">
+                    Status: {gameStatus} | Speed: {gameSpeed}x
+                </span>
+            </div>
             <div className="relative flex-1">
                 <ReactFlow
                     nodes={nodes}
-                    edges={edges}
+                    edges={edges.map((edge) => ({
+                        ...edge,
+                        data: {
+                            ...edge.data,
+                            requests: requests.filter((r) => r.edgeId === edge.id && !r.done),
+                        },
+                    }))}
                     nodeTypes={nodeTypes}
-                    edgeTypes={edgeTypes}
+                    edgeTypes={memoizedEdgeTypes}
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
